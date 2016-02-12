@@ -42,9 +42,35 @@ def readMPU():
         # (this lets us immediately read more without waiting for an interrupt)        
         fifoCount -= packetSize 
 #filter code
-#filter varibles
+#bias calc
 global bias = 0 #bias on pitch
 global biasCalcStartTimer = 0
-global
-def calBias()
+global hasRun = False
+global biasCalcReadings[20]
+global biasCount = 0
+global biasFirstRead = 0
+def calBias():
+    if not hasRun:
+        biasCalcStartTimer = time.time()
+        hasRun = True
+        biasFristRead = filteredPitch()
+    else:
+        if time.time() - biasCalcStartTimer > 10:
+            hasRun = False
+            biasCount = 0
+        else:
+            if biasCount == 20:
+                error = 0
+                for i in range(10):
+                    error =+ biasCalcReadings[i] - biasCalcReadings[i + 1]
+                bias += error/20
+                hasRun = False
+            else:
+                diasCalcReadings[biasCount] = filteredPitch()
+                biasCount += 1
+#filter
+def filteredPitch(stopped):
+    if stopped: calBias()
+    else: return readMPU() - bias
+
     
