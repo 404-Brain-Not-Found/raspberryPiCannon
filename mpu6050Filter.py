@@ -69,8 +69,11 @@ def calBias():
                 diasCalcReadings[biasCount] = filteredPitch()
                 biasCount += 1
 #filter
-def filteredPitch(stopped):
+def filteredPitch():
+    return readMPU() - bias
+#main loop
+def updateMPU(stopped)
     if stopped: calBias()
-    else: return readMPU() - bias
+    else: return filteredPitch()
 
     
