@@ -27,16 +27,15 @@ def xIValue():
     Xki = Xki * .5
 def XDValue():
     Xkd = Xkd / .5
-def xControl(Input):
+def xControl(error):
     now = millis()-xlastRun
     if now >= sampleTime:
 
         #if ki or kd have change recompute them
-        if Xki != Xki: xIValue
-        if Xkd != Xkd: xDValue
+        if Xki != Xki: xIValue()
+        if Xkd != Xkd: xDValue()
         
         #compute all the working error variables
-        error = float(xSetPoint - Input)
         xITerm = float(Xki * error)
         if error > maxOutput: xIterm = maxOutput
         elif error < minOutput: xITerm = minOutput
@@ -78,8 +77,8 @@ def yPID(Input, setPoint):
     if now >= sampleTime:
 
         #if ki or kd have change recompute them
-        if yki != yki: yIValue
-        if ykd != ykd: yDValue
+        if yki != yki: yIValue()
+        if ykd != ykd: yDValue()
         
         #compute all the working error variables
         error = float(SetPoint - Input)

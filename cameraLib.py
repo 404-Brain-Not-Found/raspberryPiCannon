@@ -87,3 +87,7 @@ def turretCam():
 
         break
     return turnX
+
+def updateCameras():
+    return servoCam(), turrentCam()
+

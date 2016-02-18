@@ -11,5 +11,5 @@ GPIO.setmode(GPIO.BCM)
     servo.start(5)
 
 def setServo(angle):
-    duty = float(angle) / 10.0 +2 .5
+    duty = float(angle) / 10.0 + 2 .5
     servo.ChangeDutyCycle(duty)
