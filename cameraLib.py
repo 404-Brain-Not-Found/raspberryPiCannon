@@ -53,6 +53,13 @@ def servoCam():
         servoPan = max(0, min(180, servoPan))
 
         break
+    frame = cv2.resize(frame, (540,300))
+    frame = cv2.flip(frame, 1)
+	
+    # Display the image, with rectangle
+    # on the Pi desktop
+    cv2.imshow('Video', frame)
+	
     return servoPan
 
 def turretCam():
@@ -86,6 +93,12 @@ def turretCam():
         turnX /= float(Frame_W/2)
 
         break
+    frame = cv2.resize(frame, (540,300))
+    frame = cv2.flip(frame, 1)
+	
+    # Display the image, with rectangle
+    # on the Pi desktop
+    cv2.imshow('Video', frame)
     return turnX
 
 def updateCameras():

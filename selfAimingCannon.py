@@ -9,9 +9,10 @@ while not startup:
     while time.time < 2:
         calBias()
     cameraSetUp()
-    startup = True
     pitch = update(False)
     servoStart()
+    startup = True
+    break
 
 #main loop
 stopped = True
@@ -19,8 +20,8 @@ while True:
     servoPos, turretError = updateCameras()
     pitch = updateMPU(stopped)
     setServo(servoPos)
-    #distance calc lib need to write
     targetPitch = calcAnlge(calDistance(servoPos))
     canFire = motorControl(turretError, pitch, targetPitch)
     userInterface(canFire)
-    
+    break
+
