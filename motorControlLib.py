@@ -12,7 +12,11 @@ global reverse = 0
 global forward = 1
 def milis():
     return time.time()*1000
-
+#tuning
+def tunig(target, acual, p, d):
+    persentage = float(target/10)
+    if math.abs(acual - target) < peresntage:return p, d + (target - acual)/100
+    else return p +(target - acual) /100, d
 #x axis control
 global Xkp = 1
 global Xki = 1
@@ -23,6 +27,7 @@ global xSetPoint = 240
 global xLastRun = 0
 global xDirection = 1
 global xNoCorrection = False
+global frameTaget = 100
 def xIValue():
     Xki = Xki * .5
 def XDValue():
@@ -47,7 +52,9 @@ def xControl(error):
         elif output < minOutput: output = minOuput
 
         #chech if no movement is need
-        if output == 0: xNoCorrection = True
+        if math.abs(output) < .2:
+            xNoCorrection = True
+            Xkp, Xkd = tuning(frameTarget, framTarget + error, Xkp, Xkd)
         else xNoCorrection = False
         
         #remember some variables for next time
@@ -93,7 +100,9 @@ def yPID(Input, setPoint):
         elif output < minOutput: output = minOuput
 
         #chech if no movement is need
-        if output == 0: yNoCorrection = True
+        if math.abs(output) < .2:
+            yNoCorrection = True
+            ykp, ykd = tuning(setPoint, Input, ykp, ykd)
         else yNoCorrection = False
         
         #remember some variables for neyt time
