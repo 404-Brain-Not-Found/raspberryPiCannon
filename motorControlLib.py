@@ -5,24 +5,38 @@ rr = RRB2()
 
 
 #univeral varibale
-global sampleTime = 500
-global maxOutput = 1
-global minOuput = -1
-global reverse = 0
-global forward = 1
+global sampleTime
+sampleTime = 500
+global maxOutput
+maxOutput= 1
+global minOutput
+minOutput= -1
+global reverse
+reverse = 0
+global forward
+forward = 1
 def milis():
     return time.time()*1000
 
 #x axis control
-global Xkp = 1
-global Xki = 1
-global Xkd = 1
-global xITerm = 0
-global xLastInput = 0
-global xSetPoint = 240
-global xLastRun = 0
-global xDirection = 1
-global xNoCorrection = False
+global Xkp
+Xkp = 1
+global Xki
+Xki = 1
+global Xkd
+Kpd = 1
+global xITerm
+xITerm = 0
+global xLastInput
+xLastInput= 0
+global xSetPoint
+xSetPoint = 240
+global xLastRun
+xLastRun = 0
+global xDirection
+xDirection = 1
+global xNoCorrection
+xNoCorrection = False
 def xIValue():
     Xki = Xki * .5
 def XDValue():
@@ -39,7 +53,7 @@ def xControl(error):
         xITerm = float(Xki * error)
         if error > maxOutput: xIterm = maxOutput
         elif error < minOutput: xITerm = minOutput
-        dInput = Input - xLastInput
+        Input = Input - xLastInput
 
         #compute PID output
         output = Xkp * error + xITerm - Xkd * dInput
@@ -48,7 +62,7 @@ def xControl(error):
 
         #chech if no movement is need
         if output == 0: xNoCorrection = True
-        else xNoCorrection = False
+        else: xNoCorrection = False
         
         #remember some variables for next time
         xlastInput = Input
@@ -56,18 +70,25 @@ def xControl(error):
 
         #set motor direction
         if output > 0: xDirection = reverse
-        else xDirection = forward
+        else: xDirection = forward
         return math.abs(output)
 
 
 #y axis control
-global ykp = 1
-global yki = 1
-global ykd = 1
-global yITerm = 0
-global yLastInput = 0
-global yLastRun = 0
-global yNoCorrection = False
+global ykp
+ykp = 1
+global yki
+yki = 1
+global ykd
+ykd = 1
+global yITerm
+yITerm = 0
+global yLastInput
+yLastInput = 0
+global yLastRun
+yLastRun = 0
+global yNoCorrection
+yNoCorrection = False
 def yIValue():
     yki = yki * .5
 def yDValue():
@@ -94,7 +115,7 @@ def yPID(Input, setPoint):
 
         #chech if no movement is need
         if output == 0: yNoCorrection = True
-        else yNoCorrection = False
+        else: yNoCorrection = False
         
         #remember some variables for neyt time
         ylastInput = Input
@@ -102,11 +123,11 @@ def yPID(Input, setPoint):
 
         #set motor direction
         if output > 0: yDirection = reverse
-        else yDirection = forward
+        else: yDirection = forward
         return math.abs(output)
 #control motors
 def motorControl(xInput,yInput,ySetpoint):
     rr.set_motors(xPID(xInput),xDirection,yPID(yInput,ySetpoint),yDirection)
     if xNoCorrection and yNoCorrection: return True
-    else return False
+    else: return False
         
