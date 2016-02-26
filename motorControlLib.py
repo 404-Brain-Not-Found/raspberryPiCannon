@@ -61,7 +61,7 @@ def xControl(error):
         elif output < minOutput: output = minOuput
 
         #chech if no movement is need
-        if output == 0: xNoCorrection = True
+        if output < .1: xNoCorrection = True
         else: xNoCorrection = False
         
         #remember some variables for next time
@@ -103,6 +103,7 @@ def yPID(Input, setPoint):
         
         #compute all the working error variables
         error = float(SetPoint - Input)
+        if error < Input*.1: return 0
         yITerm = float(yki * error)
         if error > mayOutput: yIterm = mayOutput
         elif error < minOutput: yITerm = minOutput
@@ -114,7 +115,7 @@ def yPID(Input, setPoint):
         elif output < minOutput: output = minOuput
 
         #chech if no movement is need
-        if output == 0: yNoCorrection = True
+        if output < .1: yNoCorrection = True
         else: yNoCorrection = False
         
         #remember some variables for neyt time
