@@ -1,7 +1,6 @@
 import cv2, sys, time, RPi.GPIO as GPIO, math
-from pycomms import PyComms
 from rrb2 import *
-import servoLib, motorControlLib, cameraLib, mpu6050, mpu6050Filtered, angleCalc, userInterface, distanceCalc
+import servoLib, motorControlLib, cameraLib, arduinoCon, angleCalc, userInterface, distanceCalc
 pitch = 0
 #startup
 startup = False
