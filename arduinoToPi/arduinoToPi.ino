@@ -1,41 +1,53 @@
 #include <Wire.h>
 #include <Kalman.h>
 #include "I2Cdev.h"
-#include "MPU6050"
+#include "MPU6050.h"
 
-#define SLAVE_ADDRESS 0x4
 
 Kalman kalmanX;
 Kalman kalmanY;
-MPU6050 accelgyro
+MPU6050 accelgyro;
 
 int const LED_PIN = 3;
 int const PI_RECIEVE_PIN = 4;
 int const PI_SEND_PIN = 1;
-float ax, ay, az;
-float gx, gy, gz;
+boolean const DEBUG = true;
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
 float KalmanX, KalmanY;
-uint32_t timer;
+boolean ledOn = false;
+int timer;
+if(DEBUG) int setTimer;
 
 void setup(){
-  Wire.begin(SLAVE_ADDRESS)
+  Wire.begin();
   
   //filter set up
   accelgyro.initialize();
   pinMode(LED_PIN, OUTPUT);
-  accelgyro.getMotion6(&ax, &ay, $az, &gx, &gy, &gz);
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   kalmanX.setAngle(roll());
   kalmanY.setAngle(pitch());
-  timer = micros()
+  timer = micros();
   
   //pi conmuncaion setup
   pinMode(PI_RECIEVE_PIN, INPUT);
   pinMode(PI_SEND_PIN, OUTPUT);
+  
+  //debug
+  if (DEBUG) Serial.begin(9600);
 }
 
 void loop(){
+  if(DEBUG) setTimer = millis();
   filter();
   piCom();
+  if (DEBUG){
+    Serial.print("Time it take to run loop");
+    Serial.println(millis() - setTimer);
+    Serial.print("pitch = ");
+    Serial.print(KalmenY)
+  }
 }
 
 // filter parts
@@ -46,7 +58,7 @@ float pitch(){
   return atan2(-ax, az) * RAD_TO_DEG;
 }
 void filter(){
-  accelgyro.getMotion6(&ax, &ay, $az, &gx, &gy, &gz);
+  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   
   double dt = (double)(micros() - timer / 1000000;
   timer = micros();
@@ -60,5 +72,12 @@ void filter(){
 // pi comunation
 
 void piCom(){
-  if digitalRead(PI_RECIECVE_PIN) analogWrite(PI_SEND_PIN, map(KalmanY,-90,90,0,1023));
+  analogWrite(PI_SEND_PIN, map(KalmanY,-90,90,0,1023));
+}
+
+// led contorl
+void led(){
+  if(ledOn) digitalWrite(LED_PIN, LOW);
+  else digitalWrite(LED_PIN, HIGH);
+  ledOn = !ledOn;
 }
