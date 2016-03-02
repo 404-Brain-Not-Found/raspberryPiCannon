@@ -5,10 +5,8 @@ pitch = 0
 #startup
 startup = False
 while not startup:
-    while time.time < 2:
-        calBias()
+    arduinoSetup()
     cameraSetUp()
-    pitch = update(False)
     servoStart()
     startup = True
     break
@@ -17,7 +15,7 @@ while not startup:
 stopped = True
 while True:
     servoPos, turretError = updateCameras()
-    pitch = updateMPU(stopped)
+    pitch = getGyroValue()
     setServo(servoPos)
     targetPitch = calcAnlge(calDistance(servoPos))
     canFire = motorControl(turretError, pitch, targetPitch)

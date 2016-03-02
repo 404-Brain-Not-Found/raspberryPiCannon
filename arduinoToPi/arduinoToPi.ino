@@ -1,23 +1,25 @@
 #include <Wire.h>
 #include <Kalman.h>
-#include "I2Cdev.h"
-#include "MPU6050.h"
+#include <I2Cdev.h>
+#include <MPU6050.h>
 
 
 Kalman kalmanX;
 Kalman kalmanY;
 MPU6050 accelgyro;
 
-int const LED_PIN = 3;
+int const LED_PIN = 12;
 int const PI_RECIEVE_PIN = 4;
 int const PI_SEND_PIN = 1;
-boolean const DEBUG = true;
+int const HEART_BEAT_Rate = 250;
+boolean const DEBUG = false;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 float KalmanX, KalmanY;
 boolean ledOn = false;
-int timer;
-if(DEBUG) int setTimer;
+int32_t timer;
+int32_t cycleCount = 1;
+int32_t setTimer;
 
 void setup(){
   Wire.begin();
@@ -31,23 +33,28 @@ void setup(){
   timer = micros();
   
   //pi conmuncaion setup
-  pinMode(PI_RECIEVE_PIN, INPUT);
-  pinMode(PI_SEND_PIN, OUTPUT);
+    pinMode(PI_SEND_PIN, OUTPUT);
   
   //debug
-  if (DEBUG) Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop(){
   if(DEBUG) setTimer = millis();
   filter();
   piCom();
-  if (DEBUG){
-    Serial.print("Time it take to run loop");
+  led();
+  if(DEBUG){
+    Serial.print("Time it take to run loop = ");
     Serial.println(millis() - setTimer);
-    Serial.print("pitch = ");
-    Serial.print(KalmenY)
+    Serial.print("filtered pitch = ");
+    Serial.println(KalmanY);
+    Serial.print("Raw pitch= ");
+    Serial.println(gy);
+    Serial.print("Is led on =");
+    Serial.println(ledOn);
   }
+  delay(10);
 }
 
 // filter parts
@@ -60,24 +67,25 @@ float pitch(){
 void filter(){
   accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   
-  double dt = (double)(micros() - timer / 1000000;
+  double dt = (double)(micros() - timer / 1000000);
   timer = micros();
   
   double gyroXrate = gy / 131.0;
   double gyroYrate = gy / 131.0;
   
-  KalmanX = kalmanX.getAngle(roll, gyroXrate, dt);
-  KalmanY = kalmanY.getAngle(pitch, gyroYrate, dt);
+  KalmanX = kalmanX.getAngle(roll(), gyroXrate, dt);
+  KalmanY = kalmanY.getAngle(pitch(), gyroYrate, dt);
 }
 // pi comunation
 
 void piCom(){
-  analogWrite(PI_SEND_PIN, map(KalmanY,-90,90,0,1023));
+  digitalWrite(PI_SEND_PIN, map(KalmanY,-90,90,0,255));
 }
 
 // led contorl
 void led(){
-  if(ledOn) digitalWrite(LED_PIN, LOW);
-  else digitalWrite(LED_PIN, HIGH);
+  if(ledOn) digitalWrite(LED_PIN, HIGH);
+  else digitalWrite(LED_PIN, LOW);
   ledOn = !ledOn;
 }
+

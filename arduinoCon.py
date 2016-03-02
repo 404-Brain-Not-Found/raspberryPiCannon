@@ -1,16 +1,14 @@
-import smbus
-import time
+import RPi.GPIO as GPIO
 
-bus = smbus.SMBus(1)
+PITCH_PIN = 4
+DIGITAL_MAX = 255
+DIGITAL_MIN = 0
 
-ARDUINOADDRESS = 0x04
+def arduinoSetup():
+    configureDitialPin(GPIO,PITCH_PIN,'input')
 
-def writeNumber(value):
-    bus.write_byte(ARDUINOADDRESS, value)
-    return -1
-
-def readNumber():
-    return bus.read_byte(ARDUINOADDRESS)
+def digitalConvert(x, in_min, in_max, out_min, out_max):
+    return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 def getGyroVaule():
-    writeNumber(True)
-    return readNumber()
+    value = readDigitalPin(GPIO, PITCH_PIN)
+    return digitalConvert(value, DIGITAL_MIN, DIGITAL_MAX, -90, 90)
