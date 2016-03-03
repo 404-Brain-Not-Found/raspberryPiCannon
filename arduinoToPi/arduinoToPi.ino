@@ -12,7 +12,7 @@ int const LED_PIN = 12;
 int const PI_RECIEVE_PIN = 4;
 int const PI_SEND_PIN = 1;
 int const HEART_BEAT_Rate = 250;
-boolean const DEBUG = false;
+boolean const DEBUG = true;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 float KalmanX, KalmanY;
@@ -22,7 +22,7 @@ int32_t cycleCount = 1;
 int32_t setTimer;
 
 void setup(){
-  Wire.begin();
+  Wire.begin(4);
   
   //filter set up
   accelgyro.initialize();
@@ -54,7 +54,6 @@ void loop(){
     Serial.print("Is led on =");
     Serial.println(ledOn);
   }
-  delay(10);
 }
 
 // filter parts

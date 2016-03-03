@@ -1,14 +1,22 @@
-import RPi.GPIO as GPIO
+# -*- coding: utf-8 -*-
+import smbus
+import time
+# for RPI version 1, use “bus = smbus.SMBus(0)”
+bus = smbus.SMBus(1)
 
-PITCH_PIN = 4
-DIGITAL_MAX = 255
-DIGITAL_MIN = 0
+# This is the address we setup in the Arduino Program
+address = 0x04
 
-def arduinoSetup():
-    configureDitialPin(GPIO,PITCH_PIN,'input')
+def writeNumber(value):
+    bus.write_byte(address, value)
+    # bus.write_byte_data(address, 0, value)
+    return -1
 
-def digitalConvert(x, in_min, in_max, out_min, out_max):
-    return ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+def readNumber():
+    number = bus.read_byte(address)
+    # number = bus.read_byte_data(address, 1)
+    return number
+
 def getGyroVaule():
-    value = readDigitalPin(GPIO, PITCH_PIN)
-    return digitalConvert(value, DIGITAL_MIN, DIGITAL_MAX, -90, 90)
+    writeNumber(1)
+    return readNumber()
