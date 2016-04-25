@@ -65,57 +65,57 @@ rightServoPan = 127
 leftServoPan = 127
 
 
-def milis():  # Get the time in millis
+def _millis_():  # Get the time in millis
     return time.time()*1000
 
 
-def xIValue():
+def _x_i_value_():
     global Xki
     Xki *= sampleTime / 1000
 
 
-def XDValue():
+def _x_d_value_():
     global Xkd
     Xkd /= sampleTime / 1000
 
 
-def yIValue():
+def _y_i_value_():
     global yki
     yki *= sampleTime / 1000
 
 
-def yDValue():
+def _y_d_value_():
     global ykd
     ykd /= sampleTime / 1000
 
 
-def xPID(Input, setpoint):
+def _x_pid_(in_put, set_point):
     global xDirection
     global xNoCorrection
     global xLastRun
     global xLastInput
     global xITerm
     global xLastOut
-    now = millis()-xlastRun
+    now = _millis_()-xlastRun
     if now - xLastRun >= sampleTime:
 
         # if ki or kd have change recompute them
         if Xki != Xki:
-            xIValue()
+            _x_i_value_()
         if Xkd != Xkd:
-            xDValue()
+            _x_d_value_()
 
         # compute all the working error variables
-        error = float(setpoint - Input)
+        error = float(set_point - in_put)
         xITerm = float(Xki * error)
         if error > maxOutput:
             xITerm = maxOutput
         elif error < minOutput:
             xITerm = minOutput
-        dinput = Input - xLastInput
+        d_input = in_put - xLastInput
 
         # compute PID output
-        output = Xkp * error + xITerm - Xkd * dinput
+        output = Xkp * error + xITerm - Xkd * d_input
         if output > maxOutput:
             output = maxOutput
         elif output < minOutput:
@@ -142,24 +142,24 @@ def xPID(Input, setpoint):
     return xLastOut
 
 
-def yPID(Input, SetPoint):
+def _y_pid_(in_put, set_point):
     global yITerm
     global yLastInput
     global yLastRun
     global yDirection
     global yNoCorrection
     global yLastOut
-    now = millis()-ylastRun
+    now = _millis_()-ylastRun
     if now - yLastRun >= sampleTime:
 
         # if ki or kd have change recompute them
         if yki != yki:
-            yIValue()
+            _y_i_value_()
         if ykd != ykd:
-            yDValue()
+            _y_d_value_()
 
         # compute all the working error variables
-        error = float(SetPoint - Input)
+        error = float(set_point - in_put)
         if error < Input*.1:
             return 0
         yITerm = float(yki * error)
@@ -167,10 +167,10 @@ def yPID(Input, SetPoint):
             yITerm = mayOutput
         elif error < minOutput:
             yITerm = minOutput
-        dinput = input - yLastInput
+        d_input = in_put - yLastInput
 
         # compute PID output
-        output = ykp * error + yITerm - ykd * dinput
+        output = ykp * error + yITerm - ykd * d_input
         if output > mayOutput:
             output = maxOutput
         elif output < minOutput:
@@ -196,38 +196,38 @@ def yPID(Input, SetPoint):
     return yLastOut
 
 
-def calcAngle(distance):
-    inside_sin = (gravity * distance) / acceleration ** 2
+def _calc_angle_(_distance):
+    inside_sin = (gravity * _distance) / acceleration ** 2
     if math.abs(inside_sin) > 1:
         print ("Out of Range")
     return math.degrees(math.sin(inside_sin)) / 2
 
 
-def distanceAndYawCal(angle1, angle2):
+def _distance_and_yaw_cal_(angle1, angle2):
     angle1 = math.radians(angle1)
     angle2 = math.radians(angle2)
-    distance = distanceBetween*((math.sin(angle1)*math.sin(angle2))/math.sin(angle1+angle2))
+    _distance = distanceBetween*((math.sin(angle1)*math.sin(angle2))/math.sin(angle1+angle2))
     yaw = 180 - (((180 - (math.degrees(angle1) + math.degrees(angle2)))/2) + math.degrees(angle1))
-    return distance, yaw
+    return _distance, yaw
 
 
-# contorl function
-def setServos(r, l):
+# control function
+def _set_servos_(r, l):
     r_duty = float(r) / 10.0 + 2.5
     l_duty = float(l) / 10.0 + 2.5
     rServo.ChangeDutyCycle(r_duty)
     lServo.ChangeDutyCycle(l_duty)
 
 
-def motorControl(xInput, xSetpoint, yInput, ySetpoint):
-    rr.set_motors(xPID(xInput, xSetpoint), xDirection, yPID(yInput, ySetpoint), yDirection)
+def _motor_control_(x_input, x_set_point, y_input, y_set_point):
+    rr.set_motors(_x_pid_(x_input, x_set_point), xDirection, _y_pid_(y_input, y_set_point), yDirection)
     if xNoCorrection and yNoCorrection:
         return True
     else:
         return False
 
 
-def servoCamRight():
+def _servo_cam_right_():
     # Capture frame-by-frame
     global rightServoPan
     ret, frame = SERVO_CAM0.read()
@@ -236,8 +236,8 @@ def servoCamRight():
         print("Error getting image")
 
     # convert to greyscale for detection
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.qualizeHist(gray)
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.qualizeHist(gray)
 
     # do face detection
     faces = faceCascade.detectMultiScale(frame, 1.1, 3, 0, (10, 10))
@@ -252,14 +252,14 @@ def servoCamRight():
         x += (w/2)
 
         # correct relative to center of image
-        turnX = float(x - (Frame_W/2))
+        turn_x = float(x - (Frame_W/2))
 
         # convert to perventage offset
-        turnX /= float(Frame_W/2)
+        turn_x /= float(Frame_W/2)
 
         # scale offest to degrees
-        turnX *= 2.5  # VFOV
-        rightServoPan += -turnX
+        turn_x *= 2.5  # VFOV
+        rightServoPan += -turn_x
 
         # limit to 0 through 180 degrees
         rightServoPan = max(0, min(180, rightServoPan))
@@ -275,7 +275,7 @@ def servoCamRight():
     return servoPan
 
 
-def servoCamLeft():
+def _servo_cam_left_():
     global leftServoPan
     # Capture frame-by-frame
     ret, frame = SERVO_CAM1.read()
@@ -284,8 +284,8 @@ def servoCamLeft():
         print("Error getting image")
 
     # convert to greyscale for detection
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    gray = cv2.qualizeHist(gray)
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.qualizeHist(gray)
 
     # do face detection
     faces = faceCascade.detectMultiScale(frame, 1.1, 3, 0, (10, 10))
@@ -300,14 +300,14 @@ def servoCamLeft():
         x += (w/2)
 
         # correct relative to center of image
-        turnX = float(x - (Frame_W/2))
+        turn_x = float(x - (Frame_W/2))
 
         # convert to perventage offset
-        turnX /= float(Frame_W/2)
+        turn_x /= float(Frame_W/2)
 
         # scale offest to degrees
-        turnX *= 2.5  # VFOV
-        leftServoPan += -turnX
+        turn_x *= 2.5  # VFOV
+        leftServoPan += -turn_x
 
         # limit to 0 through 180 degrees
         leftServoPan = max(0, min(180, leftServoPan))
@@ -323,12 +323,12 @@ def servoCamLeft():
     return servoPan
 
 
-def updateCameras():
-    return servoCamLeft(), servoCamRight()
+def _update_cameras_():
+    return _servo_cam_left_(), _servo_cam_right_()
 
 
-def userInterface(readToFire):
-    if readToFire:
+def _user_inter_face_(read_to_fire):
+    if read_to_fire:
         GPIO.output(notReadyLedPin, GPIO.LOW)
         GPIO.output(readyLedPin, GPIO.HIGH)
         if GPIO.input(fireBottonPin):
@@ -341,7 +341,7 @@ def userInterface(readToFire):
         GPIO.output(triggerPin, GPIO.LOW)
 
 
-def setup():
+def _setup_():
     global rServo
     global lServo
     GPIO.setmode(GPIO.BCM)
@@ -364,7 +364,7 @@ def setup():
     return True
 
 
-def readArduino(pin):
+def _read_arduino_(pin):
     if pin == ARDUINO_READY:
         return GPIO.input(ARDUINO_READY)
     else:
@@ -381,16 +381,16 @@ def readArduino(pin):
         else:
             return (count - 0) * (90 - 0) / ((200 - 0) + 0)
 # startup
-setup()
+_setup_()
 lServo = GPIO.PMW(LEFT_SERVO_PIN, 100)
 rServo = GPIO.PMW(RIGHT_SERVO_PIN, 100)
 # main loop
 while True:
-    leftServo, leftServo = updateCameras()
-    getPitch = readArduino(PITCH)
-    getYaw = readArduino(YAW)
+    rightServo, leftServo = _update_cameras_()
+    getPitch = _read_arduino_(PITCH)
+    getYaw = _read_arduino_(YAW)
     setServo(servoPos)
-    distance, angle = distanceAndYawCal(rightServo, leftServo)
+    distance, angle = _distance_and_yaw_cal_(rightServo, leftServo)
     targetPitch = calcAnlge(distance)
-    canFire = motorControl(getYaw, angle, getPitch, targetPitch)
-    userInterface(canFire)
+    canFire = _motor_control_(getYaw, angle, getPitch, targetPitch)
+    _user_inter_face_(canFire)
