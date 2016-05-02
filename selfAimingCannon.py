@@ -36,12 +36,12 @@ acceleration = 50
 
 notReadyLedPin = 13
 readyLedPin = 16
-fireBottonPin = 17
+fireButtonPin = 17
 triggerPin = 18
 
 distanceBetween = 10
 
-ARDUINO_READY = 12
+CON_PIN = 12
 PITCH = 6
 ROLL = 5
 YAW = 4
@@ -96,7 +96,7 @@ def _x_pid_(in_put, set_point):
     global xLastInput
     global xITerm
     global xLastOut
-    now = _millis_()-xlastRun
+    now = _millis_()
     if now - xLastRun >= sampleTime:
 
         # if ki or kd have change recompute them
@@ -106,7 +106,7 @@ def _x_pid_(in_put, set_point):
             _x_d_value_()
 
         # compute all the working error variables
-        error = float(set_point - in_put)
+        error = float(set_point - in_put)/100
         xITerm = float(Xki * error)
         if error > maxOutput:
             xITerm = maxOutput
@@ -119,7 +119,7 @@ def _x_pid_(in_put, set_point):
         if output > maxOutput:
             output = maxOutput
         elif output < minOutput:
-            output = minOuput
+            output = minOutput
 
         # check if no movement is need
         if output < .1:
@@ -128,9 +128,9 @@ def _x_pid_(in_put, set_point):
             xNoCorrection = False
 
         # remember some variables for next time
-        xLastInput = Input
+        xLastInput = in_put
         xLastRun = now
-        xLastOut = math.abs(output)
+        xLastOut = math.fabs(output)
 
         # set motor direction
 
@@ -138,7 +138,7 @@ def _x_pid_(in_put, set_point):
             xDirection = reverse
         else:
             xDirection = forward
-        return math.abs(output)
+        return math.fabs(output)
     return xLastOut
 
 
@@ -149,7 +149,7 @@ def _y_pid_(in_put, set_point):
     global yDirection
     global yNoCorrection
     global yLastOut
-    now = _millis_()-ylastRun
+    now = _millis_()
     if now - yLastRun >= sampleTime:
 
         # if ki or kd have change recompute them
@@ -159,22 +159,22 @@ def _y_pid_(in_put, set_point):
             _y_d_value_()
 
         # compute all the working error variables
-        error = float(set_point - in_put)
-        if error < Input*.1:
+        error = float(set_point - in_put)/100
+        if error < in_put*.1:
             return 0
         yITerm = float(yki * error)
-        if error > mayOutput:
-            yITerm = mayOutput
+        if error > maxOutput:
+            yITerm = maxOutput
         elif error < minOutput:
             yITerm = minOutput
         d_input = in_put - yLastInput
 
         # compute PID output
         output = ykp * error + yITerm - ykd * d_input
-        if output > mayOutput:
+        if output > maxOutput:
             output = maxOutput
         elif output < minOutput:
-            output = minOuput
+            output = minOutput
 
         # check if no movement is need
         if output < .1:
@@ -183,22 +183,22 @@ def _y_pid_(in_put, set_point):
             yNoCorrection = False
 
         # remember some variables for next time
-        yLastInput = Input
+        yLastInput = in_put
         yLastRun = now
-        yLastOut = math.abs(output)
+        yLastOut = math.fabs(output)
 
         # set motor direction
         if output < 0:
             yDirection = reverse
         else:
             yDirection = forward
-        return math.abs(output)
+        return math.fabs(output)
     return yLastOut
 
 
 def _calc_angle_(_distance):
     inside_sin = (gravity * _distance) / acceleration ** 2
-    if math.abs(inside_sin) > 1:
+    if math.fabs(inside_sin) > 1:
         print ("Out of Range")
     return math.degrees(math.sin(inside_sin)) / 2
 
@@ -208,6 +208,7 @@ def _distance_and_yaw_cal_(angle1, angle2):
     angle2 = math.radians(angle2)
     _distance = distanceBetween*((math.sin(angle1)*math.sin(angle2))/math.sin(angle1+angle2))
     yaw = 180 - (((180 - (math.degrees(angle1) + math.degrees(angle2)))/2) + math.degrees(angle1))
+    yaw = math.floor(yaw + .5)
     return _distance, yaw
 
 
@@ -272,7 +273,7 @@ def _servo_cam_right_():
     # on the Pi desktop
     cv2.imshow('Video', frame)
 
-    return servoPan
+    return rightServoPan
 
 
 def _servo_cam_left_():
@@ -320,7 +321,20 @@ def _servo_cam_left_():
     # on the Pi desktop
     cv2.imshow('Video', frame)
 
-    return servoPan
+    return leftServoPan
+
+
+def _offset_calibrate_():
+    while _read_arduino_(CON_PIN) == GPIO.LOW:
+        time.sleep(.01)
+    time.sleep(1)
+    done = False
+    while not done:
+        if _read_arduino_(CON_PIN) == GPIO.LOW:
+            rr.set_motors(1, reverse, 0, reverse)
+        else:
+            rr.set_motors(0, reverse, 0, reverse)
+            done = True
 
 
 def _update_cameras_():
@@ -331,12 +345,12 @@ def _user_inter_face_(read_to_fire):
     if read_to_fire:
         GPIO.output(notReadyLedPin, GPIO.LOW)
         GPIO.output(readyLedPin, GPIO.HIGH)
-        if GPIO.input(fireBottonPin):
+        if GPIO.input(fireButtonPin) == GPIO.HIGH:
             GPIO.output(triggerPin, GPIO.HIGH)
         else:
             GPIO.output(triggerPin, GPIO.LOW)
     else:
-        GPIO.output(readLedPin, GPIO.LOW)
+        GPIO.output(readyLedPin, GPIO.LOW)
         GPIO.output(notReadyLedPin, GPIO.HIGH)
         GPIO.output(triggerPin, GPIO.LOW)
 
@@ -346,7 +360,6 @@ def _setup_():
     global lServo
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(RIGHT_SERVO_PIN, GPIO.OUT)
-    rServo = GPIO.PMW(RIGHT_SERVO_PIN, 100)
     rServo.start(5)
     lServo = GPIO.PMW(LEFT_SERVO_PIN, 100)
     lServo = GPIO.start(5)
@@ -361,12 +374,19 @@ def _setup_():
     SERVO_CAM1.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, Frame_W)
     SERVO_CAM1.set(cv2.cv.CV_CAP - PROP_FRAME_HEIGHT, Frame_H)
     time.sleep(2)
+
+    GPIO.setup(CON_PIN, GPIO.OUT)
+    GPIO.output(CON_PIN, GPIO.HIGH)
+    time.sleep(.001)
+    GPIO.setup(CON_PIN, GPIO.IN)
+
+    _offset_calibrate_()
     return True
 
 
 def _read_arduino_(pin):
-    if pin == ARDUINO_READY:
-        return GPIO.input(ARDUINO_READY)
+    if pin == CON_PIN:
+        return GPIO.input(CON_PIN)
     else:
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, GPIO.LOW)
@@ -386,11 +406,11 @@ lServo = GPIO.PMW(LEFT_SERVO_PIN, 100)
 rServo = GPIO.PMW(RIGHT_SERVO_PIN, 100)
 # main loop
 while True:
-    rightServo, leftServo = _update_cameras_()
+    leftServo, rightServo = _update_cameras_()
     getPitch = _read_arduino_(PITCH)
     getYaw = _read_arduino_(YAW)
-    setServo(servoPos)
+    _set_servos_(rightServo, leftServo)
     distance, angle = _distance_and_yaw_cal_(rightServo, leftServo)
-    targetPitch = calcAnlge(distance)
+    targetPitch = _calc_angle_(distance)
     canFire = _motor_control_(getYaw, angle, getPitch, targetPitch)
     _user_inter_face_(canFire)
