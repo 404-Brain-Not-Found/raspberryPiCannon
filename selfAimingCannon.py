@@ -385,6 +385,8 @@ def _setup_():
 
 
 def _read_arduino_(pin):
+    min_value = 106/324
+    max_value = 106/106
     if pin == CON_PIN:
         return GPIO.input(CON_PIN)
     else:
@@ -396,10 +398,11 @@ def _read_arduino_(pin):
         GPIO.setup(pin, GPIO.IN)
         while GPIO.input(pin) == GPIO.LOW:
             count += 1
+        count = 106/count
         if pin == YAW:
-            return (count - 0) * (180 - (-180) / ((200 - 0) + -180))
+            return (count - min_value) * (180 - (-180) / ((max_value - min_value) + -180))
         else:
-            return (count - 0) * (90 - 0) / ((200 - 0) + 0)
+            return (count - min_value) * (90 - 0) / ((max_value - min_value) + 0)
 # startup
 _setup_()
 lServo = GPIO.PMW(LEFT_SERVO_PIN, 100)
