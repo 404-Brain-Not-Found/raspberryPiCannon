@@ -390,6 +390,8 @@ def _read_arduino_(pin):
     if pin == CON_PIN:
         return GPIO.input(CON_PIN)
     else:
+        GPIO.setup(CON_PIN, GPIO.OUT)
+        GPIO.output(CON_PIN, GPIO.HIGH)
         GPIO.setup(pin, GPIO.OUT)
         GPIO.output(pin, GPIO.LOW)
         count = 0
@@ -399,6 +401,8 @@ def _read_arduino_(pin):
         while GPIO.input(pin) == GPIO.LOW:
             count += 1
         count = 106/count
+        GPIO.output(CON_PIN, GPIO.LOW)
+        GPIO.setup(CON_PIN, GPIO.IN)
         if pin == YAW:
             return (count - min_value) * (180 - (-180) / ((max_value - min_value) + -180))
         else:
